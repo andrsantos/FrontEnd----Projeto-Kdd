@@ -16,7 +16,9 @@
 
           <div class="form-field">
             <label for="idade" class="form-label">Idade</label>
-            <input type="number" id="idade" v-model="formData.idade" class="form-input buttonless" readonly>
+            <input type="number" id="idade" v-model="formData.idade" class="form-input buttonless" readonly style="border:none;">
+            <!-- Elemento para exibir a mensagem de erro em tempo real -->
+            <p v-if="idadeError" class="error-message">{{ idadeError }}</p>
           </div>
 
           <div class="form-field">
@@ -143,7 +145,7 @@
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="card-button-primary" :disabled="isLoading">
+          <button type="submit" class="card-button-primary" :disabled="isLoading || idadeError">
             Enviar
           </button>
         </div>
@@ -177,6 +179,7 @@ const formData = ref({
 });
 
 const isLoading = ref(false);
+const idadeError = ref(null); // Novo estado para a mensagem de erro da idade
 
 const linguagemOptions = [
   'Nenhuma', 'A BAP', 'ABAP', 'C++', 'C', 'C#', 'Clipper', 'COBOL', 'Delphi', 'Elixir', 'F#', 'Go', 'HTML', 'Java', 'JavaScript', 'Kotlin', 'Lisp', 'M', 'Matlab', 'Pascal', 'Perl', 'PHP', 'Python', 'R', 'Ruby', 'Rust', 'Scala', 'Softwares estatísticos', 'SQL', 'Swift', 'TypeScript', 'Visual Basic', 'Outra'
@@ -192,6 +195,7 @@ const bancoDadosOptions = {
 watch(() => formData.value.dataNascimento, (novaData) => {
   if (!novaData) {
     formData.value.idade = null;
+    idadeError.value = null;
     return;
   }
   const hoje = new Date();
@@ -202,6 +206,13 @@ watch(() => formData.value.dataNascimento, (novaData) => {
     idadeCalculada--;
   }
   formData.value.idade = idadeCalculada;
+  
+  // Verificação em tempo real
+  if (idadeCalculada < 18) {
+    idadeError.value = 'A idade deve ser 18 anos ou mais.';
+  } else {
+    idadeError.value = null;
+  }
 });
 
 watch(() => formData.value.viveNoBrasil, (novoValor) => {
@@ -211,6 +222,12 @@ watch(() => formData.value.viveNoBrasil, (novoValor) => {
 });
 
 const submitForm = async () => {
+  // Validação de idade no envio, agora com o estado reativo
+  if (idadeError.value) {
+    alert('Por favor, corrija a idade antes de continuar.');
+    return;
+  }
+  
   const campos = Object.keys(formData.value);
   for (const campo of campos) {
     const valor = formData.value[campo];
@@ -432,5 +449,12 @@ const submitForm = async () => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* NOVO ESTILO PARA A MENSAGEM DE ERRO */
+.error-message {
+  color: #ff6b6b; /* Cor vermelha para o erro */
+  font-size: 0.8rem;
+  margin-top: 5px;
 }
 </style>
